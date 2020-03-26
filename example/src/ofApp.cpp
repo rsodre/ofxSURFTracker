@@ -7,8 +7,13 @@ void ofApp::setup() {
     ofSetVerticalSync(true);
     vidGrabber.initGrabber(CAM_W, CAM_H);
     bRecording = true;
-    surfTracker.setSize( SURF_W, SURF_H );
-    surfTracker.bContrast = true;
+    
+	marker.load("marker.jpg");
+	surfTracker.bContrast = true;
+	surfTracker.setSize(marker.getWidth(), marker.getHeight());
+	surfTracker.detect(marker);
+	surfTracker.learnFeatures();
+
     fps = 0;
     
 }
@@ -21,10 +26,8 @@ void ofApp::update() {
     if (bRecording){
         vidGrabber.update();
         if(vidGrabber.isFrameNew()) {
-            if(bLearnFeatures){
-                surfTracker.learnFeatures(); // has to happen before the detect step
-            }
             surfTracker.detect(vidGrabber.getPixels().getData(), CAM_W, CAM_H);
+			surfTracker.match();
         }
     }
     
@@ -38,15 +41,21 @@ void ofApp::draw() {
 	
 	ofBackground(255);
     ofSetColor(255);
-    
-    vidGrabber.draw(0, 0);
-    
-    ofPushMatrix();
-    { // draw the tracking image on top of the camera image
-        ofTranslate((CAM_W - SURF_W)/2, (CAM_H - SURF_H)/2);
-        surfTracker.draw();
-    }
-    ofPopMatrix();
+
+	ofPushMatrix();
+	{
+		// mirror camera
+		//int w = vidGrabber.getWidth();
+		//ofTranslate(w,0);
+		//ofScale(-1, 1);
+
+		vidGrabber.draw(0, 0);
+		marker.draw(0, 0);
+
+		surfTracker.draw();
+	}
+	ofPopMatrix();
+
     
     ofSetColor(0);
     
@@ -56,7 +65,6 @@ void ofApp::draw() {
                        , 10, CAM_H + 20);
     
     ofDrawBitmapString((string)"Keys: " +
-                       "\n[SPACE]: learn features " + (bLearnFeatures ? "on" : "off") +
                        "\n[p]: pause/play camera " +
                        "\n[f]: toggle features " +
                        "\n[m]: toggle matches " +
@@ -77,9 +85,6 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed (int key) {
 	switch (key) {
-        case ' ':
-            bLearnFeatures = !bLearnFeatures;
-            break;
         case 'p':
             bRecording = !bRecording;
             break;

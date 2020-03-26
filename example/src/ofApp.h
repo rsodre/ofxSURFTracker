@@ -5,11 +5,6 @@
 // SURF Trackers
 #include "ofxSURFTracker.h"
 
-
-// SURF settings
-#define SURF_W 320 
-#define SURF_H 240
-
 // CAMERA
 #define CAM_W 640
 #define CAM_H 480
@@ -29,11 +24,11 @@ public:
 	void windowResized(int w, int h);
 
     float fps;
-    
+	bool bRecording;
+
     ofVideoGrabber vidGrabber;
+	ofImage marker;
     
     // SURF
     ofxSURFTracker surfTracker;
-    bool bLearnFeatures;
-    bool bRecording;
 };
