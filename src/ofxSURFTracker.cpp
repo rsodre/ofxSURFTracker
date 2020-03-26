@@ -168,18 +168,31 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
     
     // create the cvImage from the ofImage
     inputImg.setFromPixels(pix, inputWidth, inputHeight);
-    inputImg.setROI( ofRectangle((inputWidth-width)/2,
-                                 (inputHeight-height)/2,
-                                 width,
-                                 height
-                                 )
-                    );
-    
-    // take out the piece that we want to use.
-    croppedImg.setFromPixels(inputImg.getRoiPixels().getData(), width, height);
-    
-    // make it into a trackable grayscale image
-    trackImg = croppedImg;
+
+	if (useROI)
+	{
+		inputImg.setROI(ofRectangle((inputWidth - width) / 2,
+			(inputHeight - height) / 2,
+			width,
+			height
+		)
+		);
+
+		// take out the piece that we want to use.
+		croppedImg.setFromPixels(inputImg.getRoiPixels().getData(), width, height);
+
+		// make it into a trackable grayscale image
+		trackImg = croppedImg;
+	}
+	else
+	{
+		if (trackImg.getWidth() != inputImg.getWidth() || trackImg.getHeight() != inputImg.getHeight())
+		{
+			trackImg.clear();
+			trackImg.allocate(inputImg.getWidth(), inputImg.getHeight());
+		}
+		trackImg = inputImg;
+	}
     
     // do some fancy contrast stuff
     if(bContrast){
@@ -303,6 +316,12 @@ void ofxSURFTracker::createHomography(vector<KeyPoint> keyPoints, vector <Point2
 		}
 		
 	}
+}
+
+int ofxSURFTracker::match() {
+	int matches = match(keyPoints_Object, descriptors_Object, objectBounds);
+	createHomography(keyPoints_Object, objectBounds);
+	return matches;
 }
 
 

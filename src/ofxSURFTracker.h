@@ -48,10 +48,11 @@ public:
 	
 	// save the detected keypoints and descriptors in the "object"
     void learnFeatures();
-	
+ 
 	// detect match with the current scene and return the number of matches
+	int match();
 	int match(vector<KeyPoint> keyPoints, Mat descriptors, vector <Point2f> bounds);
-	
+
 	// calculate the perspective transform and apply to bounds polygon
 	void createHomography(vector<KeyPoint> keyPoints, vector <Point2f> bounds);
 	
@@ -115,6 +116,7 @@ public:
 	
 private:
     int width, height;
+	bool useROI = false;
     ofxCvColorImage inputImg;
     ofxCvColorImage croppedImg;
     ofxCvGrayscaleImage trackImg;
