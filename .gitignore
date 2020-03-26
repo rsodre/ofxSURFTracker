@@ -36,3 +36,7 @@ build/
 xcuserdata
 *.moved-aside
 .svn
+.vs/
+obj/
+*.db
+*.opendb
