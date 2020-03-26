@@ -10,9 +10,19 @@
 #include "ofMain.h"
 #include "ofxOpenCv.h"
 
+#include <opencv2/core/version.hpp>
+#define IS_OPENCV3 (CV_VERSION_MAJOR == 3)
+
 // This depends on ofxOpenCV and opencv2
 //#include <opencv2/features2d/features2d.hpp>
+#if IS_OPENCV3
+#include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
+#include <opencv2/xfeatures2d/nonfree.hpp>
+using namespace cv::xfeatures2d;
+#else
 #include <opencv2/nonfree/features2d.hpp>
+#endif
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -122,9 +132,15 @@ private:
 	vector< DMatch > good_Matches;				// matches between original and new descriptors
     Mat homography;								// prespective transform between original and new features
     vector <Point2f> objectBounds_Transformed;	// perspective transformed bounds
-    
-    SurfFeatureDetector detector;
-    SurfDescriptorExtractor extractor;
+	
+#if IS_OPENCV3
+	Ptr<SURF> detector = SURF::create();
+	Ptr<SURF> extractor = SURF::create();
+#else
+	SurfFeatureDetector detector;
+	SurfDescriptorExtractor extractor;
+#endif
+	
     FlannBasedMatcher flannMatcher;
     
 };

@@ -145,7 +145,7 @@ void ofxSURFTracker::detect(ofImage &img){
     if(inputWidth < width || inputHeight < height){
         return; // detection impossible, because I can't crop out of this image
     }
-    detect(img.getPixels(), inputWidth, inputHeight);
+    detect(img.getPixels().getData(), inputWidth, inputHeight);
 }
 
 //-----------------------------------------------------
@@ -176,7 +176,7 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
                     );
     
     // take out the piece that we want to use.
-    croppedImg.setFromPixels(inputImg.getRoiPixels(), width, height);
+    croppedImg.setFromPixels(inputImg.getRoiPixels().getData(), width, height);
     
     // make it into a trackable grayscale image
     trackImg = croppedImg;
@@ -187,20 +187,34 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
     }
     
     // set up the feature detector
-    detector =  SurfFeatureDetector(hessianThreshold,
-                                    octaves,
-                                    octaveLayers,
+#if IS_OPENCV3
+	detector =  SURF::create(hessianThreshold,
+							 octaves,
+							 octaveLayers,
+							 bExtended,
+							 bUpright);
+#else
+	detector =  SurfFeatureDetector(hessianThreshold,
+									octaves,
+									octaveLayers,
 									bExtended,
-                                    bUpright);
-    
-	
+									bUpright);
+#endif
     
     // get the Mat to do the feature detection on
     Mat trackMat = cvarrToMat(trackImg.getCvImage());
-    detector.detect( trackMat, keyPoints_Scene);
-    
+#if IS_OPENCV3
+	detector->detect( trackMat, keyPoints_Scene);
+#else
+	detector.detect( trackMat, keyPoints_Scene);
+#endif
+	
     // Calculate descriptors (feature vectors)
-    extractor.compute( trackMat, keyPoints_Scene, descriptors_Scene );
+#if IS_OPENCV3
+	extractor->compute( trackMat, keyPoints_Scene, descriptors_Scene );
+#else
+	extractor.compute( trackMat, keyPoints_Scene, descriptors_Scene );
+#endif
 	
 }
 
@@ -347,7 +361,7 @@ Mat ofxSURFTracker::getObjectDescriptors(){
 //-----------------------------------------------------
 ofImage ofxSURFTracker::getCroppedImage(){
 	ofImage newImg;
-	newImg.setFromPixels(croppedImg.getPixels(), croppedImg.getWidth(), croppedImg.getHeight(), OF_IMAGE_COLOR);
+	newImg.setFromPixels(croppedImg.getPixels().getData(), croppedImg.getWidth(), croppedImg.getHeight(), OF_IMAGE_COLOR);
 	return newImg;
 }
 

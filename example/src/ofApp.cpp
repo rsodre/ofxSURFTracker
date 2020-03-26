@@ -24,7 +24,7 @@ void ofApp::update() {
             if(bLearnFeatures){
                 surfTracker.learnFeatures(); // has to happen before the detect step
             }
-            surfTracker.detect(vidGrabber.getPixels(), CAM_W, CAM_H);
+            surfTracker.detect(vidGrabber.getPixels().getData(), CAM_W, CAM_H);
         }
     }
     
@@ -51,7 +51,7 @@ void ofApp::draw() {
     ofSetColor(0);
     
     ofDrawBitmapString("fps: " + ofToString(fps, 1) +
-                       " - Life: " + ofToString(surfTracker.objectLifeTime, 2) +
+//                       " - Life: " + ofToString(surfTracker.objectLifeTime, 2) +
                        " - Matches: " + ofToString(surfTracker.getNumGoodMatches())
                        , 10, CAM_H + 20);
     
