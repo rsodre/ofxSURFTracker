@@ -41,10 +41,12 @@ public:
     void drawMatches();
     void drawHomoGraphy();
     void setSize(int _width, int _height);
+	void reset();
 	
 	// detect features in the supplied image
 	void detect(ofImage& img);
-    void detect(unsigned char * pix, int inputWidth, int inputHeight);
+	void detect(ofxCvGrayscaleImage& grayscaleImage);
+	void detect(unsigned char * pix, int inputWidth, int inputHeight);
 	
 	// save the detected keypoints and descriptors in the "object"
     void learnFeatures();
@@ -104,10 +106,12 @@ public:
     
     // get the number of approved matches, a measure for the quality
     int getNumGoodMatches();
+	bool isTracking();
 	
 	// access the tracked object:
 	vector <KeyPoint> getObjectKeyPoints();
 	vector <Point2f> getObjectBounds();
+	vector <Point2f> getObjectBoundsTransformed();
 	Mat getObjectDescriptors();
 	ofImage getCroppedImage();
 
@@ -115,6 +119,9 @@ public:
 	float getHeight();
 	
 private:
+
+	void detect();
+
     int width, height;
 	bool useROI = false;
     ofxCvColorImage inputImg;

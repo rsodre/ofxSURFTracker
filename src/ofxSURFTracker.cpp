@@ -9,11 +9,11 @@
 
 //-----------------------------------------------------
 ofxSURFTracker::ofxSURFTracker(){
-    width = 320;
-    height = 240;
-    trackImg.allocate(width, height);
-    inputImg.allocate(width, height);
-    hessianThreshold = 500;
+	width = 320;
+	height = 240;
+	trackImg.allocate(width, height);
+	inputImg.allocate(width, height);
+	hessianThreshold = 500;
     octaves = 3;
     octaveLayers = 4;
     bUpright = bContrast = false;
@@ -26,6 +26,14 @@ ofxSURFTracker::ofxSURFTracker(){
 //-----------------------------------------------------
 ofxSURFTracker::~ofxSURFTracker(){
     
+}
+
+void ofxSURFTracker::reset() {
+}
+
+bool ofxSURFTracker::isTracking()
+{
+	return !objectBounds_Transformed.empty();
 }
 
 #pragma mark - DRAW
@@ -137,37 +145,25 @@ void ofxSURFTracker::drawHomoGraphy(){
 #pragma mark - track
 
 //-----------------------------------------------------
-void ofxSURFTracker::detect(ofImage &img){
-    
-    int inputWidth = img.getWidth();
-    int inputHeight = img.getHeight();
-    
-    if(inputWidth < width || inputHeight < height){
-        return; // detection impossible, because I can't crop out of this image
-    }
-    detect(img.getPixels().getData(), inputWidth, inputHeight);
+void ofxSURFTracker::detect(ofImage &img) {
+    detect(img.getPixels().getData(), img.getWidth(), img.getHeight());
 }
 
-//-----------------------------------------------------
-void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight){
-    
-    /***
-    code adapted from http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html
-     ***/
-	
-	// clear existing keypoints from previous frame
-	keyPoints_Scene.clear();
-	objectBounds_Transformed.clear();
-	
-    if( inputWidth != inputImg.getWidth() || inputHeight != inputImg.getHeight()){
-        // this should only happen once
-        inputImg.clear();
-        inputImg.allocate(inputWidth, inputHeight);
-        cout << "ofxSURFTracker : re-allocated the input image."<<endl;
-    }
-    
-    // create the cvImage from the ofImage
-    inputImg.setFromPixels(pix, inputWidth, inputHeight);
+void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
+{
+	if (inputWidth < width || inputHeight < height) {
+		return; // detection impossible, because I can't crop out of this image
+	}
+
+	if (inputWidth != inputImg.getWidth() || inputHeight != inputImg.getHeight()) {
+		// this should only happen once
+		inputImg.clear();
+		inputImg.allocate(inputWidth, inputHeight);
+		cout << "ofxSURFTracker : re-allocated the input image." << endl;
+	}
+
+	// create the cvImage from the ofImage
+	inputImg.setFromPixels(pix, inputWidth, inputHeight);
 
 	if (useROI)
 	{
@@ -186,20 +182,56 @@ void ofxSURFTracker::detect(unsigned char *pix, int inputWidth, int inputHeight)
 	}
 	else
 	{
-		if (trackImg.getWidth() != inputImg.getWidth() || trackImg.getHeight() != inputImg.getHeight())
-		{
+		if (trackImg.getWidth() != inputWidth || trackImg.getHeight() != inputHeight) {
 			trackImg.clear();
-			trackImg.allocate(inputImg.getWidth(), inputImg.getHeight());
+			trackImg.allocate(inputWidth, inputHeight);
 		}
 		trackImg = inputImg;
 	}
-    
-    // do some fancy contrast stuff
-    if(bContrast){
-        trackImg.contrastStretch();
-    }
-    
-    // set up the feature detector
+
+	// do some fancy contrast stuff
+	if (bContrast) {
+		trackImg.contrastStretch();
+	}
+
+	detect();
+}
+
+
+void ofxSURFTracker::detect(ofxCvGrayscaleImage& grayscaleImage)
+{
+	int inputWidth = grayscaleImage.getWidth();
+	int inputHeight = grayscaleImage.getHeight();
+
+	if (inputWidth < width || inputHeight < height) {
+		return; // detection impossible, because I can't crop out of this image
+	}
+
+	if (trackImg.getWidth() != inputWidth || trackImg.getHeight() != inputHeight) {
+		trackImg.clear();
+		trackImg.allocate(inputWidth, inputHeight);
+	}
+
+	trackImg = grayscaleImage;
+
+	detect();
+}
+
+
+void ofxSURFTracker::detect()
+{
+	/***
+	code adapted from http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html
+	***/
+
+	// clear existing keypoints from previous frame
+	keyPoints_Scene.clear();
+	objectBounds_Transformed.clear();
+
+	// https://docs.opencv.org/2.4/modules/nonfree/doc/feature_detection.html#SURF%20:%20public%20Feature2D
+
+
+	// set up the feature detector
 #if IS_OPENCV3
 	detector =  SURF::create(hessianThreshold,
 							 octaves,
@@ -370,6 +402,9 @@ vector <KeyPoint> ofxSURFTracker::getObjectKeyPoints(){
 //-----------------------------------------------------
 vector <Point2f> ofxSURFTracker::getObjectBounds(){
 	return objectBounds;
+}
+vector <Point2f> ofxSURFTracker::getObjectBoundsTransformed() {
+	return objectBounds_Transformed;
 }
 
 //-----------------------------------------------------
