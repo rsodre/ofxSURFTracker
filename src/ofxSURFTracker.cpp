@@ -88,7 +88,7 @@ int ofxSURFTracker::getNumGoodMatches(){
 void ofxSURFTracker::drawFeatures(){
     
     ofNoFill();
-    ofSetColor(0, 255, 0);
+    ofSetColor(255, 0, 0);
     for(int i = 0; i < keyPoints_Scene.size(); i++){
         // ofDrawCircle(keyPoints_Scene[i].pt.x, keyPoints_Scene[i].pt.y, 2);
 		ofPushMatrix();
@@ -98,7 +98,16 @@ void ofxSURFTracker::drawFeatures(){
 		ofPopMatrix();
 		
     }
-    
+	ofSetColor(0, 255, 0);
+	for (int i = 0; i < good_Matches.size();i++) {
+		Point2f p = keyPoints_Scene[good_Matches[i].trainIdx].pt;
+		ofPushMatrix();
+		ofTranslate(p.x, p.y);
+		ofDrawLine(-2, -2, 2, 2);
+		ofDrawLine(2, -2, -2, 2);
+		ofPopMatrix();
+	}
+
 }
 
 //-----------------------------------------------------
@@ -342,7 +351,7 @@ void ofxSURFTracker::createHomography(vector<KeyPoint> keyPoints, vector <Point2
 			object_pts.push_back( keyPoints[ good_Matches[i].queryIdx ].pt );
 			scene_pts.push_back( keyPoints_Scene[ good_Matches[i].trainIdx ].pt );
 		}
-		if( scene_pts.size() >5 && object_pts.size() > 5){
+		if( scene_pts.size() >minMatches && object_pts.size() > minMatches){
 			homography = findHomography( object_pts, scene_pts, CV_RANSAC);
 			perspectiveTransform( bounds, objectBounds_Transformed, homography);
 		}
